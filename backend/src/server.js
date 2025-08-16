@@ -14,22 +14,16 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
 
-// ✅ Update CORS
-import express from "express";
-import cors from "cors";
-
-const app = express();
-
+// CORS
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // for local dev
-      "https://streamify-video-chat-app.vercel.app", // your frontend on Vercel
+      "http://localhost:5173",
+      "https://streamify-video-chat-app.vercel.app",
     ],
-    credentials: true, // allow cookies/authorization headers
+    credentials: true,
   })
 );
-
 
 app.use(express.json());
 app.use(cookieParser());
@@ -39,16 +33,22 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// ✅ Serve frontend in production
+// Serve frontend in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  connectDB();
-});
+// Connect DB first, then start server
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to DB:", err);
+  });
