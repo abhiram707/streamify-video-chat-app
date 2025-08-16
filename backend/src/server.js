@@ -15,15 +15,21 @@ const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
 
 // ✅ Update CORS
+import express from "express";
+import cors from "cors";
+
+const app = express();
+
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // local dev
-      process.env.FRONTEND_URL, // Vercel frontend
+      "http://localhost:5173", // for local dev
+      "https://streamify-video-chat-app.vercel.app", // your frontend on Vercel
     ],
-    credentials: true,
+    credentials: true, // allow cookies/authorization headers
   })
 );
+
 
 app.use(express.json());
 app.use(cookieParser());
