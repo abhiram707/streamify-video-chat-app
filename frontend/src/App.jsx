@@ -13,6 +13,7 @@ import useAuthUser from "./hooks/useAuthUser.js";
 import  Layout  from "./components/Layout.jsx";
 import { useThemeStore } from "./store/useThemeStore.js";
 import FriendsPage from './pages/FriendsPage.jsx';
+console.log("API URL:", import.meta.env.VITE_API_URL);
 
 const App = () => {
   const{isLoading,authUser}=useAuthUser();
