@@ -1,15 +1,23 @@
-import express from "express"
-import { login,logout,signup,onboard} from "../controllers/auth.controller.js";
-import {protectRoute}  from "../middleware/auth.middleware.js";
-const router =express.Router()
+import express from "express";
+import { login, logout, signup, onboard } from "../controllers/auth.controller.js";
+import { protectRoute } from "../middleware/auth.middleware.js";
 
-router.post("/signup",signup)
-router.post("/login",login)
+const router = express.Router();
 
-router.post("/logout",logout)
+// 🔑 Auth Routes
+router.post("/signup", signup);
+router.post("/login", login);
+router.post("/logout", logout);
 
-router.post("/onboarding",protectRoute,onboard);
-router.get("/me",protectRoute,(req,res)=>{
-    res.status(200).json({success:true,user:req.user});
-})
+// 🚀 Onboarding (protected)
+router.post("/onboarding", protectRoute, onboard);
+
+// 👤 Get logged-in user details
+router.get("/me", protectRoute, (req, res) => {
+  res.status(200).json({
+    success: true,
+    user: req.user, // `req.user` is set in middleware
+  });
+});
+
 export default router;
