@@ -1,12 +1,22 @@
-import { generateStreamToken } from "../lib/stream.js";
+// src/controllers/chat.controller.js
+import { StreamChat } from "stream-chat";
 
-export async function getStreamToken(req, res) {
+// 🎟️ Generate Stream token (for Chat + Video SDK)
+export const getStreamToken = async (req, res) => {
   try {
-    // ✅ Use _id instead of id
-    const token = generateStreamToken(req.user._id.toString());
-    res.status(200).json({ token });
+    const userId = req.user._id.toString();
+
+    // Use your Stream API key & secret from env
+    const chatClient = StreamChat.getInstance(
+      process.env.STREAM_API_KEY,
+      process.env.STREAM_API_SECRET
+    );
+
+    const token = chatClient.createToken(userId);
+
+    res.json({ token });
   } catch (error) {
-    console.error("Error in getStreamToken controller:", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error generating token:", error);
+    res.status(500).json({ message: "Failed to generate Stream token" });
   }
-}
+};
