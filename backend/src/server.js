@@ -5,12 +5,9 @@ import cors from "cors";
 import path from "path";
 import helmet from "helmet";
 import morgan from "morgan";
-import fs from "fs";
-
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import chatRoutes from "./routes/chat.route.js";
-
 import { connectDB } from "./lib/db.js";
 
 const app = express();
@@ -22,10 +19,15 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS setup
+// ✅ CORS setup - Updated for separate deployments
 app.use(
   cors({
-    origin: true, // allow any origin (Vercel, localhost)
+    origin: [
+      "http://localhost:5173", // Vite dev server
+      "http://localhost:3000", // CRA dev server (if needed)
+      "https://streamify-video-chat-app-pr1x.vercel.app", // Your Vercel deployment
+      "https://*.vercel.app" // All Vercel preview deployments
+    ],
     credentials: true, // allow cookies
   })
 );
@@ -35,20 +37,17 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// -------------------- Serve Frontend in Production --------------------
-if (process.env.NODE_ENV === "production") {
-  // Check Vite or CRA build folder
-  let frontendPath = path.join(__dirname, "../frontend/dist");
-  if (!fs.existsSync(frontendPath)) {
-    frontendPath = path.join(__dirname, "../frontend/build");
-  }
+// -------------------- Health Check --------------------
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "Backend is running!", 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV 
+  });
+});
 
-  app.use(express.static(frontendPath));
-
-  app.get("*", (req, res) =>
-    res.sendFile(path.join(frontendPath, "index.html"))
-  );
-}
+// -------------------- Remove Frontend Serving --------------------
+// Since frontend is deployed on Vercel, we don't serve it from backend
 
 // -------------------- Global Error Handler --------------------
 app.use((err, req, res, next) => {
@@ -62,6 +61,7 @@ connectDB()
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`✅ Server running on port ${PORT}`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
     });
   })
   .catch((err) => console.error("❌ Failed to connect to DB:", err));
