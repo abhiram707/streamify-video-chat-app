@@ -52,11 +52,12 @@ export async function signup(req, res) {
       expiresIn: "7d",
     });
 
+    // ✅ FIXED cookie options
     res.cookie("jwt", token, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production", // ✅ FIXED
+      sameSite: "none",                // allow cross-site
+      secure: process.env.NODE_ENV === "production", // https only in prod
     });
 
     res.status(201).json({ success: true, user: newUser });
@@ -90,10 +91,11 @@ export async function login(req, res) {
       expiresIn: "7d",
     });
 
+    // ✅ FIXED cookie options
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       secure: process.env.NODE_ENV === "production",
     });
 
@@ -107,7 +109,11 @@ export async function login(req, res) {
 
 // LOGOUT
 export function logout(req, res) {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+  });
   res.status(200).json({ success: true, message: "Logout successful" });
 }
 
@@ -124,7 +130,7 @@ export async function onboard(req, res) {
           !fullName && "fullName",
           !bio && "bio",
           !nativeLanguage && "nativeLanguage",
-          !learningLanguage && "learningLanguage", // ✅ FIXED
+          !learningLanguage && "learningLanguage",
           !location && "location",
         ].filter(Boolean),
       });
@@ -136,7 +142,7 @@ export async function onboard(req, res) {
       { new: true }
     );
 
-    if (!updatedUser) return res.status(404).json({ message: "User not found" }); // ✅ FIXED typo
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
 
     try {
       await upsertStreamUser({
