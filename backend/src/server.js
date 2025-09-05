@@ -24,8 +24,8 @@ app.use(cookieParser());
 // ✅ CORS fix (allow Vercel + localhost + credentials)
 app.use(
   cors({
-    origin: true, // reflect request origin (dynamic for Vercel/localhost)
-    credentials: true, // allow cookies (JWT/session)
+    origin: true, // dynamic origin reflection
+    credentials: true, // allow cookies
   })
 );
 
@@ -34,7 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// ✅ Serve frontend in production
+// Serve frontend in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
   app.get("*", (req, res) =>
@@ -48,7 +48,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal Server Error" });
 });
 
-// ✅ Start server with correct port for Render
+// Start server
 const PORT = process.env.PORT || 5000;
 connectDB()
   .then(() => {
