@@ -111,6 +111,20 @@ const ChatPage = () => {
 
       console.log("Video client user data:", userData);
       console.log("Using token:", data.token.substring(0, 20) + "...");
+      console.log("Stream API Key:", STREAM_API_KEY ? "Present" : "Missing");
+
+      // Validate all required fields
+      if (!userData.id || !userData.name) {
+        console.error("Invalid user data:", userData);
+        toast.error("Invalid user data for video client");
+        return;
+      }
+
+      if (!data.token) {
+        console.error("No token available");
+        toast.error("No authentication token available");
+        return;
+      }
 
       // Initialize video client with error handling
       let videoClient;
