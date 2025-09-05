@@ -21,21 +21,11 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
 
-// CORS
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://streamify-video-chat-app-pr1x.vercel.app",
-];
+// ✅ CORS fix (allow Vercel + localhost + credentials)
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: true, // reflect request origin (dynamic for Vercel/localhost)
+    credentials: true, // allow cookies (JWT/session)
   })
 );
 
@@ -44,7 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// Serve frontend in production
+// ✅ Serve frontend in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
   app.get("*", (req, res) =>
