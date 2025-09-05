@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
 
-// 📌 Get recommended users
+// 🔍 Discover new users to connect with
 export async function getRecommendedUsers(req, res) {
   try {
     const currentUserId = req.user._id;
@@ -9,9 +9,9 @@ export async function getRecommendedUsers(req, res) {
 
     const recommendedUsers = await User.find({
       $and: [
-        { _id: { $ne: currentUserId } },
-        { _id: { $nin: currentUser.friends } },
-        { isOnboarded: true },
+        { _id: { $ne: currentUserId } }, // not yourself
+        { _id: { $nin: currentUser.friends } }, // not already friends
+        { isOnboarded: true }, // only onboarded users
       ],
     });
 
@@ -22,7 +22,7 @@ export async function getRecommendedUsers(req, res) {
   }
 }
 
-// 📌 Get my friends
+// 👥 Get my friends
 export async function getMyFriends(req, res) {
   try {
     const user = await User.findById(req.user._id)
@@ -36,7 +36,7 @@ export async function getMyFriends(req, res) {
   }
 }
 
-// 📌 Send friend request
+// 🤝 Send a friend request
 export async function sendFriendRequest(req, res) {
   try {
     const myId = req.user._id.toString();
@@ -84,7 +84,7 @@ export async function sendFriendRequest(req, res) {
   }
 }
 
-// 📌 Accept friend request
+// ✅ Accept a friend request
 export async function acceptFriendRequest(req, res) {
   try {
     const { id: requestId } = req.params;
@@ -118,7 +118,7 @@ export async function acceptFriendRequest(req, res) {
   }
 }
 
-// 📌 Reject friend request
+// ❌ Reject a friend request
 export async function rejectFriendRequest(req, res) {
   try {
     const { id: requestId } = req.params;
@@ -134,8 +134,7 @@ export async function rejectFriendRequest(req, res) {
         .json({ message: "You are not authorized to reject this request" });
     }
 
-    friendRequest.status = "rejected";
-    await friendRequest.save();
+    await FriendRequest.findByIdAndDelete(requestId);
 
     res.status(200).json({ message: "Friend request rejected" });
   } catch (error) {
@@ -144,7 +143,7 @@ export async function rejectFriendRequest(req, res) {
   }
 }
 
-// 📌 Get all friend requests
+// 📥 Get all incoming + accepted requests
 export async function getFriendRequests(req, res) {
   try {
     const incomingReqs = await FriendRequest.find({
@@ -167,7 +166,7 @@ export async function getFriendRequests(req, res) {
   }
 }
 
-// 📌 Get outgoing friend requests
+// 📤 Outgoing friend requests
 export async function getOutgoingFriendReqs(req, res) {
   try {
     const outgoingRequests = await FriendRequest.find({
