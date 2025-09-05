@@ -26,7 +26,7 @@ const ChatPage = () => {
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
   const { authUser } = useAuthUser();
-
+  
   const { data } = useQuery({
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
@@ -48,7 +48,9 @@ const ChatPage = () => {
           data.token
         );
 
+        // ✅ Use consistent channel ID generation
         const channelId = [authUser._id, targetUserId].sort().join("-");
+        
         const currChannel = client.channel("messaging", channelId, {
           members: [authUser._id, targetUserId],
         });
@@ -70,35 +72,46 @@ const ChatPage = () => {
   const handleVideoCall = async () => {
     if (channel && data?.token) {
       try {
+        // ✅ Use consistent call ID (same as channel ID)
+        const callId = [authUser._id, targetUserId].sort().join("-");
+        
+        console.log("Starting video call with ID:", callId);
+
         // Initialize video client
-        const videoClient = new StreamVideoClient({
-          apiKey: STREAM_API_KEY,
+        const videoClient = StreamVideoClient.getOrCreateInstance(STREAM_API_KEY, {
           user: {
             id: authUser._id,
             name: authUser.fullName,
             image: authUser.profilePic || "https://via.placeholder.com/150",
           },
-          token: data.token, // must be video-capable token
+          token: data.token,
         });
 
         // Create or get the video call
-        const call = videoClient.call("default", channel.id);
+        const call = videoClient.call("default", callId);
+        
+        // ✅ Fixed member format - use user_id instead of id
         await call.getOrCreate({
           data: {
             members: [
-              { id: authUser._id },
-              { id: targetUserId },
+              { user_id: authUser._id },    // ✅ Changed from 'id' to 'user_id'
+              { user_id: targetUserId },    // ✅ Changed from 'id' to 'user_id'
             ],
           },
         });
 
-        // Send call link in chat
-        const callUrl = `${window.location.origin}/call/${channel.id}`;
+        // ✅ Use the same callId for the URL
+        const callUrl = `${window.location.origin}/call/${callId}`;
+        
         await channel.sendMessage({
           text: `📹 I've started a video call. Join me here: ${callUrl}`,
         });
 
         toast.success("Video call link sent successfully!");
+        
+        // Optional: Navigate to call immediately
+        // window.location.href = callUrl;
+        
       } catch (err) {
         console.error("Error starting call:", err);
         toast.error("Failed to start video call");
