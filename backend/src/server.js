@@ -24,7 +24,7 @@ app.use(cookieParser());
 // CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://streamify-video-chat-app.vercel.app",
+  "https://streamify-video-chat-app-pr1x.vercel.app",
 ];
 app.use(
   cors({
