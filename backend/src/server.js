@@ -5,6 +5,7 @@ import cors from "cors";
 import path from "path";
 import helmet from "helmet";
 import morgan from "morgan";
+import fs from "fs";
 
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
@@ -15,32 +16,30 @@ import { connectDB } from "./lib/db.js";
 const app = express();
 const __dirname = path.resolve();
 
-// ----------------- MIDDLEWARE -----------------
+// -------------------- Middleware --------------------
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS (allow Vercel + localhost + credentials)
+// ✅ CORS setup
 app.use(
   cors({
-    origin: true, // reflect request origin
-    credentials: true,
+    origin: true, // allow any origin (Vercel, localhost)
+    credentials: true, // allow cookies
   })
 );
 
-// ----------------- API ROUTES -----------------
+// -------------------- API Routes --------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-// ----------------- SERVE FRONTEND -----------------
+// -------------------- Serve Frontend in Production --------------------
 if (process.env.NODE_ENV === "production") {
-  // Try Vite build folder first
+  // Check Vite or CRA build folder
   let frontendPath = path.join(__dirname, "../frontend/dist");
-  
-  // Fallback to CRA build folder
-  if (!require("fs").existsSync(frontendPath)) {
+  if (!fs.existsSync(frontendPath)) {
     frontendPath = path.join(__dirname, "../frontend/build");
   }
 
@@ -51,15 +50,14 @@ if (process.env.NODE_ENV === "production") {
   );
 }
 
-// ----------------- GLOBAL ERROR HANDLER -----------------
+// -------------------- Global Error Handler --------------------
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.stack);
   res.status(500).json({ message: "Internal Server Error" });
 });
 
-// ----------------- START SERVER -----------------
+// -------------------- Start Server --------------------
 const PORT = process.env.PORT || 5000;
-
 connectDB()
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
