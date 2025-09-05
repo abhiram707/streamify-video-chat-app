@@ -65,18 +65,32 @@ const CallPage = () => {
 
         console.log("User data for video client:", userData);
 
-        // Create video client with error handling
+        // Create video client with alternative approach
         let videoClient;
         try {
-          videoClient = StreamVideoClient.getOrCreateInstance(STREAM_API_KEY, {
+          // Try the standard constructor first
+          videoClient = new StreamVideoClient({
+            apiKey: STREAM_API_KEY,
             user: userData,
             token: tokenData.token,
           });
-          console.log("Video client created successfully");
+          console.log("Video client created with constructor");
         } catch (clientError) {
-          console.error("Failed to create video client:", clientError);
-          toast.error("Failed to initialize video client");
-          return;
+          console.error("Constructor failed, trying getOrCreateInstance:", clientError);
+          
+          // Fallback: try getOrCreateInstance with different parameter structure
+          try {
+            videoClient = StreamVideoClient.getOrCreateInstance({
+              apiKey: STREAM_API_KEY,
+              user: userData,
+              token: tokenData.token,
+            });
+            console.log("Video client created with getOrCreateInstance");
+          } catch (fallbackError) {
+            console.error("Both methods failed:", fallbackError);
+            toast.error("Failed to initialize video client");
+            return;
+          }
         }
 
         // Create call instance
