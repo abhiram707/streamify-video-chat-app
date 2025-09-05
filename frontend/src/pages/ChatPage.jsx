@@ -85,14 +85,17 @@ const ChatPage = () => {
         const call = videoClient.call("default", channel.id);
         await call.getOrCreate({
           data: {
-            members: [authUser._id, targetUserId],
+            members: [
+              { id: authUser._id },
+              { id: targetUserId },
+            ],
           },
         });
 
         // Send call link in chat
         const callUrl = `${window.location.origin}/call/${channel.id}`;
         await channel.sendMessage({
-          text: `I've started a video call. Join me here: ${callUrl}`,
+          text: `📹 I've started a video call. Join me here: ${callUrl}`,
         });
 
         toast.success("Video call link sent successfully!");
